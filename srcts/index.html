@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Recorder</title>
+    <! link href="styles/app.css" rel="stylesheet" type="text/css" />
+    <script>var exports = {};</script>
+    <script type="text/javascript" src="./Stuk-jszip/dist/jszip.min.js"></script>
+    <script type="text/javascript" src="./FileSaver/dist/FileSaver.min.js"></script>
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <h1>Recorder</h1>
+        </header>
+
+        <section class="main-controls">
+            <canvas class="visualizer" height="60px"></canvas>
+            <div id="buttons">
+                <button class="record">Record</button>
+                <button class="stopRecord">Stop</button>
+            </div>
+            <div id="buttons2">
+                <button class="record2">Record</button>
+                <button class="stopRecord2">Stop</button>
+            </div>
+            <div id="download">
+                <button type="submit" class="down">Expert .zip</button>
+            </div>
+        </section>
+
+        <section class="sound-clips"></section>
+    </div>
+    <script type="text/javascript" src="./record.js"></script>
+    <!data-main="./record" src="./components/require.js">
+</body>
+</html>
