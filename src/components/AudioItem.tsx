@@ -6,35 +6,39 @@ class AudioItem extends Component<any, any> {
     constructor(props:any) {
         super(props)
         this.state = {
-            name: this.props.name
         }
         this.deleteAudio = this.deleteAudio.bind(this)
-        this.changeName = this.changeName.bind(this)
+        this.selectSentence = this.selectSentence.bind(this)
     }
+    selectSentence() {
+        this.props.selectSentence(this.props.Id)
+    }
+
     deleteAudio() {
-        this.props.deleteRecord(this.props.audioId)
+        this.props.deleteRecord(this.props.Id)
     }
-    changeName() {
-        const newName = prompt("Enter a new name for your sound clip?");
-        if (newName !== null) {
-            this.setState({
-                name: newName
-            })
-        }
-        this.props.changeName([this.props.audioId, newName])
+
+    downloadAudio() {
+        saveAs(this.props.blob, this.props.index + ".webm")
     }
+
     render() {
+        const index = this.props.index + 1;
         return(
-            <li className="list-group-item">
+            <li className="sentence">
                 <Row>
                     <Col span={12}>
-                        <p onClick={this.changeName}> {this.state.name} </p>
+                        <p> {index  + '.' + this.props.text} </p>
                     </Col>
                     <Col span={12}>
-                        <audio controls src={this.props.src}/>
+                        {!this.props.audio ?
+                            <p>This voice is not recorded</p>: 
+                            <audio controls src={this.props.src} />}
                     </Col>
                     <Col span={12}>
-                        <button className="pull-right" onClick={this.deleteAudio}>删除</button>
+                        <button onClick={this.selectSentence}>select</button>
+                        <button className="deleteSentect" onClick={this.deleteAudio}>delete</button>
+                        {this.props.audio && <button onClick={this.downloadAudio.bind(this)}>download</button>}
                     </Col>
                 </Row>
             </li>

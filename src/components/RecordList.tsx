@@ -7,12 +7,15 @@ class RecordList extends Component<any, any> {
         super(props)
     }
     render() {
-        let audioList = this.props.list.map((listItem: { id: string; name: string; src: string; blob: Blob}) =>
-            <AudioItem audioId={listItem.id}
+        let audioList = this.props.list.map((listItem: { id: string; index: number; text: string; src: string; blob: Blob; audio: boolean }) =>
+            <AudioItem Id={listItem.id}
                 key={listItem.id}
-                name={listItem.name}
+                index={listItem.index}
+                text={listItem.text}
                 src={listItem.src}
-                changeName={this.props.changeName}
+                blob={listItem.blob}
+                audio={listItem.audio}
+                selectSentence={this.props.selectSentence}
                 deleteRecord={this.props.deleteRecord}/>
         )
         return (

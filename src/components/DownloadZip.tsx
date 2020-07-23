@@ -10,31 +10,35 @@ class DownloadZip extends Component<any, any> {
     }
 
     downAllRecord(data: any) {
-        let set = new Set();
-        let flag = true;
         let zip = new JSZip();
         for (let i = 0; i < data.length; i++) {
             let obj = data[i];
-            if (set.has(obj.name)) {
-                alert("There are recordings of same name. please change the name!");
-                flag = false;
-                break;
-            }
-            set.add(obj.name);
-            zip.file(obj.name + ".webm", obj.blob);
+            if(obj.audio)
+                zip.file(obj.index + ".webm", obj.blob);
         }
-        if (flag) {
-            zip.generateAsync({ type: "blob" }).then(function (content: string | Blob) {
-                saveAs(content, "Sound.zip");
-            });
-        }
-        
+        zip.generateAsync({ type: "blob" }).then(function (content: Blob) {
+            saveAs(content, "Sound.zip");
+        });
+    }
+
+    getBlob(url: string) {
+        return new Promise(function (resolve) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'blob';
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    resolve(xhr.response);
+                }
+            };
+            xhr.send();
+        });
     }
 
     render() {
         const { list, disabled } = this.props;
         return (
-            <button disabled={disabled} onClick={()=>this.downAllRecord(list)}>打包下载</ button>
+            <button disabled={disabled} onClick={()=>this.downAllRecord(list)}>Expert .zip</ button>
             )
     }
 }
