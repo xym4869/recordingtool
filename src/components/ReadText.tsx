@@ -1,16 +1,19 @@
-﻿import { Component } from "react";
+﻿import { useState } from "react";
 import * as React from 'react';
-import { List, Input, Button } from "antd"
+import { v1 as uuidv1 } from 'uuid';
+import { textItem, fileItem } from './RecordModel'
 
-class ReadText extends Component<any, any> {
-    constructor(props: any) {
-        super(props);
-        this.state = {
-            fileList: []
-        }
-    }
+interface Props {
+    list: any;
+    handleAddText: (state: Array<fileItem>) => void;
+    handleDeleteText: (state: object) => void;
+    handleSelectText: (item: object) => void;
+}
 
-    readFile(e: any) {
+export const ReadText = (props: Props) => {
+    const [fileList, setFileList] = useState(props.list)
+
+    const readFile = (e: any) => {
         const reader = new FileReader();
         let input = e.target.files[0];
         reader.readAsText(input);
@@ -18,90 +21,63 @@ class ReadText extends Component<any, any> {
             let text = e.target.result;
             let arr = (text as string).split("\n");
             let newArr = arr.filter(i => i && i.trim())
+            let itemList: textItem[] = []
+            let fileId = uuidv1();
+            newArr.forEach((newarr, index) => {
+                let newItem = {
+                    fileId: fileId,
+                    id: uuidv1(),
+                    index: index,
+                    text: newarr,
+                    src: "",
+                    blob: new Blob,
+                    audio: false
+                }
+                itemList.push(newItem)
+            })
             let item = {
-                uid: this.generateGUID(),
+                uid: fileId,
                 name: input.name,
-                text: newArr
+                text: itemList
             }
-            let list = this.state.fileList;
-            list.push(item);
-            this.setState({ fileList: list });
-        }.bind(this);
-    }
+            let list = [...fileList, item];
+            setFileList(list)
+            props.handleAddText(list)
+        };
+    };
 
-    //read(e: any) {
-    //    let input = e.target.files[0];
-    //    fs.readFile(input.name, { encoding: 'utf-8' }, function (err, data) {
-    //        let arr = data.split("\n");
-    //        let item = {
-    //            uid: this.generateGUID(),
-    //            name: input.name,
-    //            text: arr
-    //        }
-    //        let list = this.state.fileList;
-    //        list.push(item);
-    //        this.setState({ list });
-    //    })
-    //}
-
-    load(name: string) {
-        let xhr = new XMLHttpRequest(),
-            okStatus = document.location.protocol === "file:" ? 0 : 200;
-        xhr.open('GET', name, false);
-        xhr.overrideMimeType("text/html;charset=utf-8");//默认为utf-8
-        xhr.send(null);
-        return xhr.status === okStatus ? xhr.responseText : null;
-    }
-
-    
-    uploadFile(file: File) {
-        return new Promise(function (resolve, reject) {
-            let reader = new FileReader()
-            reader.readAsText(file)
-            reader.onload = function () {
-                resolve(this.result)
-            }
-        })
-    }
-
-    selectFile(uid: string) {
-        let list = this.state.fileList;
+    const selectFile = (uid: string) => {
+        let list = fileList;
         list = list.filter((file: { uid: string; }) => file.uid === uid)
-        console.log(list.text)
-        this.props.handleText(list[0])
-    }
+        let file = list[0];
+        props.handleSelectText(file)
+    };
 
-    deleteFile(uid: string) {
-        let list = this.state.fileList;
+    const deleteFile = (uid: string) => {
+        let list = fileList;
         list = list.filter((file: { uid: string; }) => file.uid !== uid)
-        this.setState({ fileList:list });
-    }
+        setFileList(list)
+        props.handleDeleteText({ uid, list })
+    };
 
-    generateGUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0,
-                v = c == 'x' ? r : (r & 0x3 | 0x8)
-            return v.toString(16)
-        })
-    }
-    render() {
-        return (
-            <div>
-                <Input type="file" title='select .txt file'
-                    accept='text/plain' onChange={this.readFile.bind(this)} />
-                {this.state.fileList.length !== 0 && 
-                <List
-                    itemLayout="horizontal"
-                    dataSource={this.state.fileList}
-                    renderItem={(item: { uid: string; name: string; }) => (
-                        <List.Item actions={[<Button onClick={() => this.selectFile(item.uid)}>select</Button>,
-                            <Button onClick={() => this.deleteFile(item.uid)}>delete</Button>]}>
-                            {item.name}
-                        </List.Item>
-                    )}
-                    />}
-                </div>
-            )
-    }
-}
-export default ReadText;
+    let list = fileList.map((fItem: fileItem) => 
+        <li key={fItem.uid}>
+            <p>{fItem.name}</p>
+            <button onClick={() => selectFile(fItem.uid)}>Select</button>
+            <button onClick={() => deleteFile(fItem.uid)}>Delete</button>
+        </li>
+    );
+
+    return (
+        <div>
+            <input type="file" accept='text/plain' onChange={readFile} />
+            {fileList.length !== 0 &&
+                <ul className="filelist-group">
+                    {list}
+                </ul>
+            }
+        </div>
+    );
+    
+
+};

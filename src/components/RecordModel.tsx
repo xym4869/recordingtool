@@ -1,104 +1,157 @@
-import { Component } from "react";
+import { useState } from "react";
 import * as React from 'react';
-import AddRecord from "./AddRecord";
-import RecordList from "./RecordList";
-import DownloadZip from "./DownloadZip"
-import ReadText from "./ReadText"
-import Item from "antd/lib/list/Item";
+import { AddRecord } from "./AddRecord";
+import { RecordList } from "./RecordList";
+import { DownloadZip } from "./DownloadZip"
+import { ReadText } from "./ReadText"
+import { v1 as uuidv1 } from 'uuid';
 
-class RecordModel extends Component<any,any> {
-    constructor(props: any) {
-        super(props);
-        this.state = {
-            item: {},
-            list: [],
-            disabled: true,
-            startAudio: false
-        }
-        this.handleAddText = this.handleAddText.bind(this)
-        this.handleDeleteRecord = this.handleDeleteRecord.bind(this);
-        this.handleAddAudio = this.handleAddAudio.bind(this);
-        this.selectSentence = this.selectSentence.bind(this)
+export interface textItem {
+    fileId: string
+    id: string;
+    index: number;
+    text: string;
+    src: string;
+    blob: Blob;
+    audio: boolean
+}
+
+export interface fileItem {
+    uid: string;
+    name: string;
+    text: any
+}
+
+const uidExample = uuidv1();
+const exampleFile: fileItem[] = [{
+    uid: uidExample,
+    name: "hhh.txt",
+    text: [{
+        fileId: uidExample,
+        id: uuidv1(),
+        index: 1,
+        text: "just an example",
+        src: "",
+        bolo: new Blob,
+        audio: false
+    }]
+}]
+
+export const RecordModel = () => {
+    const [fileList, setFileList] = useState(exampleFile)
+    const [item, setItem] = useState({} as textItem)
+    const [textList, setTextList] = useState([] as Array<textItem>)
+    const [disabled, setDisabled] = useState(true)
+    const [startAudio, setStartAudio] = useState(false)
+
+    const selectSentence = (selectText : any) => {
+        let tempList = textList;
+        tempList = tempList.filter((sentence: { id: string }) => sentence.id === selectText.id)
+        setItem(tempList[0])
+        setStartAudio(true)
+    };
+
+    const handleAddText = (file: any) => {
+        setFileList(file)
     }
 
-    selectSentence(id: string) {
-        let list = this.state.list;
-        list = list.filter((sentence: { id: string }) => sentence.id === id)
-        this.setState({
-            item: list[0],
-            startAudio: true
-        })
-    }
-
-    handleAddText(textList: any) {
-        let list: { id: string, index: number; text: string; src: string; blob: Blob; audio: boolean }[] = [];
-        let textArray = textList.text;
-        textArray.forEach((text: string, index: number) => {
-            let Item = {
-                id: this.generateGUID(),
-                index: index,
-                text: text,
-                src: "",
-                blob: new Blob,
-                audio: false
+    const handleDeleteText = (file: any) => {
+        setFileList(file.list)
+        if (textList.length !== 0) {
+            if (file.uid === textList[0].fileId) {
+                setTextList([] as Array<textItem>)
+                setItem({} as textItem)
+                setStartAudio(false)
+                setDisabled(true)
             }
-            list.push(Item)
-        })
-        this.setState({
-            list
-        })
+        }
     }
 
-    handleDeleteRecord(recordId:string) {
-        let list = this.state.list;
-        list = list.filter((record: { id: string; }) => record.id !== recordId)
-        this.setState({ list })
-        if (this.state.item.id === recordId)
-            this.setState({ item: {}, startAudio: false})
-        let d = true
-        list.forEach((item: { audio: any; }) => {
-            if (item.audio)
-                d = false;
+    const handleSelectText = (textList: any) => {
+        let textArray = textList.text;
+        setTextList(textArray)
+    };
+
+    const handleDeleteRecord = (deleteRecord: any) => {
+        let fileTempList = [...fileList];
+        fileTempList.forEach((tempFile) => {
+            if (tempFile.uid === deleteRecord.fileId) {
+                let text = tempFile.text;
+                text = text.filter((record: { id: string; }) => record.id != deleteRecord.id)
+                tempFile.text = text;
+            }
         })
-        this.setState({
-            disabled: d
-        })
+        setFileList(fileTempList)
+
+        let templist = [...textList];
+        templist = templist.filter((record: { id: string; }) => record.id !== deleteRecord.id)
+        setTextList(templist)
+
+        if (item.id === deleteRecord.id) {
+            setItem({} as textItem)
+            setStartAudio(false)
+        }
+        if (templist.length === 0)
+            setDisabled(true)
+        else {
+            let tempDis = true
+            templist.forEach((textItem) => {
+                if (textItem.audio) {
+                    tempDis = false
+                }
+            })
+            setDisabled(tempDis)
+        }
     }
 
-    handleAddAudio(audio: any) {
-        let list = this.state.list;
-        list.forEach((item: any) => {
+    const handleAddAudio = (audio: any) => {
+        let fileTempList = [...fileList];
+        fileTempList.forEach((tempFile) => {
+            if (tempFile.uid === audio.fileId) {
+                let text = tempFile.text;
+                text.forEach((changeText: textItem) => {
+                    if (changeText.id === audio.id) {
+                        changeText.src = audio.src;
+                        changeText.blob = audio.blob
+                    }
+                })
+                tempFile.text = text;
+            }
+        })
+        setFileList(fileTempList)
+
+        let templist = textList;
+        templist.forEach((item: any) => {
             if (item.id === audio.id) {
                 item.src = audio.src;
                 item.blob = new Blob([audio.blob], { type: "audio/webm" });
                 item.audio = true;
             }
         })
-        this.setState({
-            list: list,
-            disabled: false
-        })
-    }
+        setTextList(templist)
+        setDisabled(false)
+    };
 
-    generateGUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0,
-                v = c == 'x' ? r : (r & 0x3 | 0x8)
-            return v.toString(16)
-        })
-    }
-
-    render() {
-        return (
-            <div className="container">
-                <h1 className="text-center">Record Page</h1>
-                <ReadText handleText={this.handleAddText} />
-                <AddRecord startAudio={this.state.startAudio} sentence={this.state.item} handleAddAudio={this.handleAddAudio} />
-                <DownloadZip list={this.state.list} disabled={this.state.disabled}/>
-                <RecordList list={this.state.list} selectSentence={this.selectSentence} deleteRecord={this.handleDeleteRecord}/>
-            </div>
-            )
-    }
-}
-
-export default RecordModel;
+    return (
+        <div className="container">
+            <h1 className="text-center">Record Page</h1>
+            <ReadText
+                list={fileList}
+                handleAddText={handleAddText}
+                handleSelectText={handleSelectText}
+                handleDeleteText={handleDeleteText} />
+            <AddRecord
+                startAudio={startAudio}
+                sentence={item}
+                handleAddAudio={handleAddAudio} />
+            <DownloadZip
+                list={textList}
+                disabled={disabled} />
+            <RecordList
+                list={textList}
+                selectSentence={selectSentence}
+                deleteRecord={handleDeleteRecord} />
+        </div>
+    );
+    
+};

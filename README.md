@@ -13,3 +13,9 @@
 功能：选择txt文件上传，选择txt文件读取内容，形成列表，选取sentence进行录音。录音完成后可打包下载录音文件。
 
 修改至：src
+
+## Version3
+
+修改至：src
+
+删除antd，将react改成hook，并添加fileList与sentenceList的互动（修改sentenceList会同步到fileList中）

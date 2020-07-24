@@ -12,7 +12,7 @@
     "@types/dom-mediacapture-record": "^1.0.6",
     "@types/file-saver": "^2.0.1",
     "@types/node": "^14.0.23",
-    "antd": "^4.4.2",
+    "@types/uuid": "^8.0.0",
     "axios": "^0.19.2",
     "babel-cli": "^6.26.0",
     "babel-preset-react-app": "^3.1.2",
@@ -21,6 +21,7 @@
     "react": "^16.13.1",
     "react-audio-analyser": "^0.3.1",
     "react-dom": "^16.13.1",
+    "uuid": "^8.2.0",
     "webpack-dev-server": "^3.11.0"
   },
   "devDependencies": {
