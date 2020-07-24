@@ -1,5 +1,5 @@
-﻿import JSZip from 'jszip';
-import {saveAs} from 'file-saver';
+﻿//import * as JSZip from "jszip";
+//import {saveAs} from 'file-saver';
 // set up basic variables for app
 const record = <HTMLInputElement> document.querySelector(".record");
 const stopRecord = <HTMLInputElement> document.querySelector(".stopRecord");

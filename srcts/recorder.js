@@ -1,4 +1,5 @@
 ﻿//import { saveAs } from 'file-saver';
+//import JSZip from "jszip";
 // set up basic variables for app
 const record = document.querySelector(".record");
 var stopRecord = document.querySelector(".stopRecord");
@@ -17,7 +18,6 @@ down.disabled = true;
 // visualiser setup - create web audio api context and canvas
 let audioCtx;
 const canvasCtx = canvas.getContext("2d");
-var zip = new JSZip();
 //main block for doing the audio recording
 if (navigator.mediaDevices.getUserMedia) {
   console.log("getUserMedia supported.");

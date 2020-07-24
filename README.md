@@ -4,7 +4,7 @@
 功能：实现两个录音按钮，录音文件列表展示，打包下载。
 两个主文件夹
 - src：react+tsx；
-- srcts：
+- srcts：（从 [download JSZip](http://github.com/Stuk/jszip/zipball/master) 下载包解压后放入该文件夹中，并该名为Stuk-jszip）
   - index.html：+record.js（由record.ts转换而成）
   - index2.html：+recorder.js
 
