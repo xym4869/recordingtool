@@ -19,3 +19,5 @@
 修改至：src
 
 删除antd，将react改成hook，并添加fileList与sentenceList的互动（修改sentenceList会同步到fileList中）
+
+update：不再使用blob存储录音内容，改用src存储后，需要下载时获取blob再下载。
