@@ -1,10 +1,9 @@
 import { useState } from "react";
 import * as React from "react";
 import { AddRecord } from "./AddRecord";
-import { RecordList } from "./RecordList";
-import { DownloadZip } from "./DownloadZip";
-import { ReadText } from "./ReadText";
 import { v1 as uuidv1 } from "uuid";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 export interface textItem {
   fileId: string;
@@ -12,7 +11,7 @@ export interface textItem {
   index: number;
   text: string;
   src: string;
-  audio: boolean;
+  hasAudio: boolean
 }
 
 export interface fileItem {
@@ -22,8 +21,7 @@ export interface fileItem {
 }
 
 const uidExample = uuidv1();
-const exampleFile: fileItem[] = [
-  {
+const exampleFile: fileItem = {
     uid: uidExample,
     name: "hhh.txt",
     text: [
@@ -33,7 +31,7 @@ const exampleFile: fileItem[] = [
         index: 0,
         text: "just an example",
         src: "",
-        audio: false,
+            hasAudio: false,
       },
       {
         fileId: uidExample,
@@ -41,116 +39,203 @@ const exampleFile: fileItem[] = [
         index: 1,
         text: "just an another example",
         src: "",
-        audio: false,
+          hasAudio: false,
       },
     ],
-  },
-];
+  };
+
+function getBlob(url: string): Promise<Blob> {
+    return new Promise(resolve => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.responseType = "blob";
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
 
 export const RecordModel = () => {
-  const [fileList, setFileList] = useState(exampleFile);
-  const [item, setItem] = useState({} as textItem);
-  const [textList, setTextList] = useState([] as Array<textItem>);
-  const [disabled, setDisabled] = useState(true);
-  const [startAudio, setStartAudio] = useState(false);
+    const [file, setFile] = useState({} as fileItem);
+    const [item, setItem] = useState({} as textItem);
+    const [zipDisabled, setZipDisabled] = useState(true);
+    const [startAudio, setStartAudio] = useState(false);
+    const [prevDisabled, setPrevDisabled] = useState(true);
+    const [nextDisabled, setNextDisabled] = useState(false);
 
-  const selectSentence = (selectText: { fileId: string; id: string }) => {
-    let tempList = textList;
-    tempList = tempList.filter((sentence: { id: string }) => sentence.id === selectText.id);
-    setItem(tempList[0]);
-    setStartAudio(true);
-  };
 
-  const handleAddText = (file: Array<fileItem>) => {
-    setFileList(file);
-  };
+    const readFile = (e: any) => {
+        const reader = new FileReader();
+        let input = e.target.files[0];
+        reader.readAsText(input);
+        reader.onload = function (e: any) {
+            let text: string = e.target.result;
+            if (text.length === 0) {
+                alert("This text is empty. Please choose again!")
+            } else {
+                let arr = text.split("\n");
+                let newArr = arr.filter(i => i && i.trim());
+                if (newArr.length === 1) {
+                    setNextDisabled(true)
+                }
+                let itemList: textItem[] = [];
+                let fileId = uuidv1();
+                newArr.forEach((newtext, index) => {
+                    let newItem = {
+                        fileId: fileId,
+                        id: uuidv1(),
+                        index: index,
+                        text: newtext,
+                        src: "",
+                        hasAudio: false
+                    };
+                    itemList.push(newItem);
+                });
+                let newFile = {
+                    uid: fileId,
+                    name: input.name,
+                    text: itemList,
+                };
+                setFile(newFile);
+                setItem(newFile.text[0])
+                setStartAudio(true)
+            }
+        };
+    };
 
-  const handleDeleteText = (file: { uid: string; list: Array<fileItem> }) => {
-    setFileList(file.list);
-    if (textList.length !== 0) {
-      if (file.uid === textList[0].fileId) {
-        setTextList([] as Array<textItem>);
-        setItem({} as textItem);
-        setStartAudio(false);
-        setDisabled(true);
-      }
+    const handleAddAudio = (newItem: textItem) => {
+        setItem(newItem);
+        let fileTemp = file;
+        fileTemp.text.forEach(
+            currText => {
+                if (currText.id === newItem.id) {
+                    currText.src = newItem.src;
+                    currText.hasAudio = newItem.hasAudio;
+                }
+            }
+        )
+        setFile(fileTemp);
+        setZipDisabled(false);
+    };
+
+    const getPrevItem = () => {
+        setNextDisabled(false);
+        if (item.index === 1)
+            setPrevDisabled(true)
+        const newItem = file.text[item.index - 1];
+        setItem(newItem);
     }
-  };
 
-  const handleSelectText = (textList: fileItem) => {
-    let textArray = textList.text;
-    setTextList(textArray);
-  };
-
-  const handleDeleteRecord = (deleteRecord: { fileId: string; id: string }) => {
-    let fileTempList = [...fileList];
-    fileTempList.forEach(tempFile => {
-      if (tempFile.uid === deleteRecord.fileId) {
-        let text = tempFile.text;
-        text = text.filter((record: { id: string }) => record.id != deleteRecord.id);
-        tempFile.text = text;
-      }
-    });
-    setFileList(fileTempList);
-
-    let templist = [...textList];
-    templist = templist.filter((record: { id: string }) => record.id !== deleteRecord.id);
-    setTextList(templist);
-
-    if (item.id === deleteRecord.id) {
-      setItem({} as textItem);
-      setStartAudio(false);
+    const getNextItem = () => {
+        setPrevDisabled(false);
+        if (item.index === (file.text.length - 2))
+            setNextDisabled(true)
+        const newItem = file.text[item.index + 1];
+        setItem(newItem);
     }
-    if (templist.length === 0) setDisabled(true);
-    else {
-      let tempDis = true;
-      templist.forEach(textItem => {
-        if (textItem.audio) {
-          tempDis = false;
+
+    const deleteItem = () => {
+        let fileTemp = file;
+        if (file.text.length === 2) {
+            setPrevDisabled(true);
+            setNextDisabled(true);
         }
-      });
-      setDisabled(tempDis);
-    }
-  };
+        if (item.index === file.text.length - 1 || item.index === file.text.length - 2) {
+            setNextDisabled(true);
+        }
 
-  const handleAddAudio = (audio: { fileId: string; id: string; src: string; blob: Blob }) => {
-    let fileTempList = [...fileList];
-    fileTempList.forEach(tempFile => {
-      if (tempFile.uid === audio.fileId) {
-        let text = tempFile.text;
-        text.forEach((changeText: textItem) => {
-          if (changeText.id === audio.id) {
-            changeText.src = audio.src;
-          }
+        if (fileTemp.text.length !== 1) {
+            if (item.index === file.text.length - 1) {
+                const newItem = file.text[file.text.length - 2];
+                setItem(newItem);
+            } else {
+                const newItem = file.text[item.index + 1];
+                setItem(newItem);
+            }
+        } else {
+            setFile({} as fileItem);
+            setItem({} as textItem);
+            setZipDisabled(true);
+            setPrevDisabled(true);
+            setNextDisabled(false);
+            setStartAudio(false);
+        }
+
+        fileTemp.text = fileTemp.text.filter((text: textItem) => text.id !== item.id)
+        for (let i = item.index; i < fileTemp.text.length; i++) {
+            fileTemp.text[i].index = i;
+        }
+        setFile(fileTemp);
+
+        let tempDis = true;
+        fileTemp.text.forEach(textItem => {
+            if (textItem.hasAudio) {
+                tempDis = false;
+            }
         });
-        tempFile.text = text;
-      }
-    });
-    setFileList(fileTempList);
+        setZipDisabled(tempDis);
+    }
 
-    let templist = textList;
-    templist.forEach((item: textItem) => {
-      if (item.id === audio.id) {
-        item.src = audio.src;
-        item.audio = true;
-      }
-    });
-    setTextList(templist);
-    setDisabled(false);
-  };
+    const downloadTextFile = () => {
+        const textTemp = file.text;
+        let str: string = "";
+        textTemp.forEach((text: textItem) => {
+            str = str + text.text + "\n";
+        });
+        const saveFile = new File([str], file.name, { type: "text/plain;charset=utf-8" })
+        saveAs(saveFile);
+    }
 
-  return (
+    const downloadAllRecord = () => {
+        const data = file.text;
+        let zip = new JSZip();
+        for (let i = 0; i < data.length; i++) {
+            const obj = data[i];
+            if (obj.hasAudio) zip.file(obj.index + 1 + ".webm", getBlob(obj.src));
+        }
+        zip.generateAsync({ type: "blob" }).then(function (content: Blob) {
+            saveAs(content, "Sound.zip");
+        });
+    }
+
+    async function downloadAudio(){
+        const blob = await getBlob(item.src);
+        saveAs(blob, item.index + 1 + ".webm");
+    }
+
+
+    return (
     <div className="container">
-      <h1 className="text-center">Record Page</h1>
-      <ReadText
-        list={fileList}
-        handleAddText={handleAddText}
-        handleSelectText={handleSelectText}
-        handleDeleteText={handleDeleteText}
-      />
-      <AddRecord startAudio={startAudio} sentence={item} handleAddAudio={handleAddAudio} />
-      <DownloadZip list={textList} disabled={disabled} />
-      <RecordList list={textList} selectSentence={selectSentence} deleteRecord={handleDeleteRecord} />
+          <h1 className="text-center">Record Page</h1>
+          {startAudio ? <h2>{file.name}</h2> : <p>Please Select A Text.</p>}
+          <input type="file" accept="text/plain" onChange={readFile} />
+          {startAudio &&
+              <div>
+                  <div>
+                      <AddRecord sentence={item} handleAddAudio={handleAddAudio} />
+                      <button disabled={prevDisabled} onClick={getPrevItem}>
+                          Prev
+                    </button>
+                      <button disabled={nextDisabled} onClick={getNextItem}>
+                      Next
+                    </button>
+                  <button disabled={!item.hasAudio} onClick={downloadAudio}>
+                      Download
+                    </button>
+                      <button onClick={deleteItem}>
+                          Delete
+                    </button>
+                  </div>
+                  <button onClick={downloadTextFile}>
+                      Expert .txt
+                </button>
+                  <button disabled={zipDisabled} onClick={downloadAllRecord}>
+                          Expert .zip
+                </button>
+              </div>}
     </div>
   );
 };

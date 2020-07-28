@@ -1,44 +1,54 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect } from "react";
 import * as React from "react";
 import AudioAnalyser from "react-audio-analyser";
 import { textItem } from "./RecordModel";
 
 interface Props {
-  startAudio: boolean;
   sentence: textItem;
   handleAddAudio: (state: object) => void;
 }
 
 export const AddRecord = (props: Props) => {
   const [status, setStatus] = useState("");
-  const [disable, setDisable] = useState(true);
-  const [audioSrc, setAudioSrc] = useState("");
-  const audioBlob = new Blob();
+    const [audioSrc, setAudioSrc] = useState(props.sentence.src);
+    const [hasAudio, setHasAudio] = useState(props.sentence.hasAudio);
+    const [disabled, setDisabled] = useState(!props.sentence.hasAudio);
 
-  const handleAddAudio = () => {
-    props.handleAddAudio({
-      fileId: props.sentence.fileId,
-      id: props.sentence.id,
-      src: audioSrc,
-    });
-  };
+    useEffect(() => {
+        setAudioSrc(props.sentence.src);
+        setHasAudio(props.sentence.hasAudio);
+        setDisabled(!props.sentence.hasAudio);
+    }, [props]);
 
-  const controlAudio = (status: string) => {
-    if (status === "inactive") {
-      setDisable(false);
-    } else {
-      setDisable(true);
-    }
-    setStatus(status);
-    console.log("status", status);
-  };
+    const handleAddAudio = () => {
+        setHasAudio(true);
+        const newItem: textItem = {
+            fileId: props.sentence.fileId,
+            id: props.sentence.id,
+            index: props.sentence.index,
+            text: props.sentence.text,
+            src: audioSrc,
+            hasAudio: true
+        }
+        props.handleAddAudio(newItem);
+    };
+
+    const controlAudio = (status: string) => {
+        if (status === "inactive") {
+            setDisabled(false);
+        } else {
+            setDisabled(true);
+        }
+        setStatus(status);
+        console.log("status", status);
+    };
 
   const audioProps = {
     audioType: "audio/webm",
     audioOptions: { sampleRate: 24000 },
     status,
-    audioSrc,
-    audioBlob,
+      audioSrc: audioSrc,
+      audioBlob: new Blob(),
     timeslice: 1000,
     startCallback: (e: Blob) => {
       console.log("succ start", e);
@@ -46,8 +56,8 @@ export const AddRecord = (props: Props) => {
     pauseCallback: (e: Blob) => {
       console.log("succ pause", e);
     },
-    stopCallback: (e: Blob) => {
-      setAudioSrc(window.URL.createObjectURL(e));
+      stopCallback: (e: Blob) => {
+          setAudioSrc(window.URL.createObjectURL(e));
       console.log("succ stop", e);
     },
     onRecordCallback: (e: Blob) => {
@@ -60,23 +70,22 @@ export const AddRecord = (props: Props) => {
 
   return (
     <div>
-      {!props.startAudio ? (
-        <p>Tips: Click the sentence text to select it.</p>
-      ) : (
-        <div>
-          <p>{props.sentence.text}</p>
-          <AudioAnalyser {...audioProps}>
+          <div>
+              <p>{props.sentence.index + 1 + "." + props.sentence.text}</p>
+            <AudioAnalyser {...audioProps}>
             <div className="btn-box">
-              {status !== "recording" && <button onClick={() => controlAudio("recording")}>Start</button>}
-              {status === "recording" && <button onClick={() => controlAudio("paused")}>Pause</button>}
-              <button onClick={() => controlAudio("inactive")}>Stop</button>
-              <button disabled={disable} onClick={handleAddAudio}>
-                Save
-              </button>
+            {status !== "recording"
+                && !hasAudio
+                && < button onClick={() => controlAudio("recording")}>Start</button>}
+            {status !== "recording"
+                && hasAudio
+                && < button onClick={() => controlAudio("recording")}>ReRecord</button>}
+                {status === "recording" && <button onClick={() => controlAudio("paused")}>Pause</button>}
+                      <button onClick={() => controlAudio("inactive")}>Stop</button>
+                      <button disabled={disabled} onClick={handleAddAudio}>Save</button>
             </div>
-          </AudioAnalyser>
+            </AudioAnalyser>
         </div>
-      )}
     </div>
   );
 };

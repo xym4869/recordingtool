@@ -21,3 +21,9 @@
 删除antd，将react改成hook，并添加fileList与sentenceList的互动（修改sentenceList会同步到fileList中）
 
 update：不再使用blob存储录音内容，改用src存储后，需要下载时获取blob再下载。
+
+## Version4
+
+把version3存到srcv3中。
+
+功能：实现当前只有一个active的文本，且当前界面只有一条active的sentence，但可以选择前后切换sentence。
