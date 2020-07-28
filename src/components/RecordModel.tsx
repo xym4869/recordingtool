@@ -1,9 +1,12 @@
-import { useState } from "react";
-import * as React from "react";
+import React, { useState, CSSProperties } from "react";
+import styled from "styled-components";
 import { AddRecord } from "./AddRecord";
 import { v1 as uuidv1 } from "uuid";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+require('./RecordModel.scss');
+
+const RecordItem = styled.div`text-align: center`;
 
 export interface textItem {
   fileId: string;
@@ -69,7 +72,7 @@ export const RecordModel = () => {
 
     const readFile = (e: any) => {
         const reader = new FileReader();
-        let input = e.target.files[0];
+        const input = e.target.files[0];
         reader.readAsText(input);
         reader.onload = function (e: any) {
             let text: string = e.target.result;
@@ -102,6 +105,7 @@ export const RecordModel = () => {
                 setFile(newFile);
                 setItem(newFile.text[0])
                 setStartAudio(true)
+                setZipDisabled(true)
             }
         };
     };
@@ -201,20 +205,22 @@ export const RecordModel = () => {
         });
     }
 
-    async function downloadAudio(){
-        const blob = await getBlob(item.src);
-        saveAs(blob, item.index + 1 + ".webm");
-    }
-
-
     return (
     <div className="container">
           <h1 className="text-center">Record Page</h1>
-          {startAudio ? <h2>{file.name}</h2> : <p>Please Select A Text.</p>}
-          <input type="file" accept="text/plain" onChange={readFile} />
+          {!startAudio && <p>Please Select A Text.</p>}
+            <input
+                type="file"
+                id="tts-input-text"
+                accept="text/plain"
+                onChange={readFile}
+                onClick={ (e: any) => ( e.target.value = null )} />
           {startAudio &&
               <div>
-                  <div>
+                <RecordItem>
+                    <h2>
+                        {item.index + 1 + "/" + file.text.length} <br /> {item.text}
+                    </h2>
                       <AddRecord sentence={item} handleAddAudio={handleAddAudio} />
                       <button disabled={prevDisabled} onClick={getPrevItem}>
                           Prev
@@ -222,18 +228,15 @@ export const RecordModel = () => {
                       <button disabled={nextDisabled} onClick={getNextItem}>
                       Next
                     </button>
-                  <button disabled={!item.hasAudio} onClick={downloadAudio}>
-                      Download
-                    </button>
                       <button onClick={deleteItem}>
                           Delete
                     </button>
-                  </div>
+                    </RecordItem>
                   <button onClick={downloadTextFile}>
-                      Expert .txt
+                      Export .txt
                 </button>
                   <button disabled={zipDisabled} onClick={downloadAllRecord}>
-                          Expert .zip
+                          Export .zip
                 </button>
               </div>}
     </div>
