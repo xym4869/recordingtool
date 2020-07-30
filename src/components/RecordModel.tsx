@@ -1,16 +1,14 @@
-import React, { useState, CSSProperties } from "react";
-import styled from "styled-components";
+import React, { useState } from "react";
 import { AddRecord } from "./AddRecord";
 import { v1 as uuidv1 } from "uuid";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 require('./RecordModel.scss');
 
-const RecordItem = styled.div`text-align: center`;
-
 export interface textItem {
   fileId: string;
-  id: string;
+    id: string;
+    No: string;
   index: number;
   text: string;
   src: string;
@@ -22,30 +20,6 @@ export interface fileItem {
   name: string;
   text: Array<textItem>;
 }
-
-const uidExample = uuidv1();
-const exampleFile: fileItem = {
-    uid: uidExample,
-    name: "hhh.txt",
-    text: [
-      {
-        fileId: uidExample,
-        id: uuidv1(),
-        index: 0,
-        text: "just an example",
-        src: "",
-            hasAudio: false,
-      },
-      {
-        fileId: uidExample,
-        id: uuidv1(),
-        index: 1,
-        text: "just an another example",
-        src: "",
-          hasAudio: false,
-      },
-    ],
-  };
 
 function getBlob(url: string): Promise<Blob> {
     return new Promise(resolve => {
@@ -69,7 +43,6 @@ export const RecordModel = () => {
     const [prevDisabled, setPrevDisabled] = useState(true);
     const [nextDisabled, setNextDisabled] = useState(false);
 
-
     const readFile = (e: any) => {
         const reader = new FileReader();
         const input = e.target.files[0];
@@ -81,31 +54,56 @@ export const RecordModel = () => {
             } else {
                 let arr = text.split("\n");
                 let newArr = arr.filter(i => i && i.trim());
-                if (newArr.length === 1) {
-                    setNextDisabled(true)
-                }
                 let itemList: textItem[] = [];
                 let fileId = uuidv1();
+                let updateFile: boolean = true;
                 newArr.forEach((newtext, index) => {
+                    const newItemArray = newtext.split("\t");
+                    let newNo: string;
+                    let newTextTemp: string;
+                    try {
+                        if (newItemArray.length > 2) {
+                            updateFile = false;
+                            alert("Document Format Error")
+                            throw "Document format error";
+                        }
+                    } catch (str) {
+                        console.log(str);
+                    }
+                    if (newItemArray.length === 1) {
+                        newTextTemp = newItemArray[0];
+                        const newIndex = index + 1;
+                        newNo = ("0000" + newIndex).substr(-4);
+
+                    } else if (newItemArray.length === 2) {
+                        newNo = newItemArray[0];
+                        newTextTemp = newItemArray[1];
+                    }
                     let newItem = {
                         fileId: fileId,
                         id: uuidv1(),
+                        No: newNo,
                         index: index,
-                        text: newtext,
+                        text: newTextTemp,
                         src: "",
                         hasAudio: false
                     };
                     itemList.push(newItem);
                 });
-                let newFile = {
-                    uid: fileId,
-                    name: input.name,
-                    text: itemList,
-                };
-                setFile(newFile);
-                setItem(newFile.text[0])
-                setStartAudio(true)
-                setZipDisabled(true)
+                if (updateFile) {
+                    if (newArr.length === 1) {
+                        setNextDisabled(true)
+                    }
+                    let newFile = {
+                        uid: fileId,
+                        name: input.name,
+                        text: itemList,
+                    };
+                    setFile(newFile);
+                    setItem(newFile.text[0])
+                    setStartAudio(true)
+                    setZipDisabled(true)
+                }
             }
         };
     };
@@ -187,7 +185,7 @@ export const RecordModel = () => {
         const textTemp = file.text;
         let str: string = "";
         textTemp.forEach((text: textItem) => {
-            str = str + text.text + "\n";
+            str = str + text.No + "\t" + text.text + "\n";
         });
         const saveFile = new File([str], file.name, { type: "text/plain;charset=utf-8" })
         saveAs(saveFile);
@@ -198,7 +196,7 @@ export const RecordModel = () => {
         let zip = new JSZip();
         for (let i = 0; i < data.length; i++) {
             const obj = data[i];
-            if (obj.hasAudio) zip.file(obj.index + 1 + ".webm", getBlob(obj.src));
+            if (obj.hasAudio) zip.file(obj.No + ".wav", getBlob(obj.src));
         }
         zip.generateAsync({ type: "blob" }).then(function (content: Blob) {
             saveAs(content, "Sound.zip");
@@ -207,17 +205,23 @@ export const RecordModel = () => {
 
     return (
     <div className="container">
-          <h1 className="text-center">Record Page</h1>
-          {!startAudio && <p>Please Select A Text.</p>}
+          <h1 className="text-center">Recording Page</h1>
             <input
                 type="file"
                 id="tts-input-text"
                 accept="text/plain"
                 onChange={readFile}
-                onClick={ (e: any) => ( e.target.value = null )} />
+                onClick={(e: any) => (e.target.value = null)} />
+            <input
+                type="button"
+                id="tts-input-button"
+                value="Select recording script"
+                onClick={() => document.getElementById('tts-input-text').click()} />
+            <input type="text" value={file.name} id="tts-inputFileAgent" />
+            
           {startAudio &&
               <div>
-                <RecordItem>
+                <div className="tts-recordItem">
                     <h2>
                         {item.index + 1 + "/" + file.text.length} <br /> {item.text}
                     </h2>
@@ -231,12 +235,12 @@ export const RecordModel = () => {
                       <button onClick={deleteItem}>
                           Delete
                     </button>
-                    </RecordItem>
+                </div>
                   <button onClick={downloadTextFile}>
                       Export .txt
                 </button>
                   <button disabled={zipDisabled} onClick={downloadAllRecord}>
-                          Export .zip
+                    Export .zip
                 </button>
               </div>}
     </div>

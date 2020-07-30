@@ -5,7 +5,7 @@ import { textItem } from "./RecordModel";
 
 interface Props {
     sentence: textItem;
-    handleAddAudio: (state: object) => void;
+    handleAddAudio: (state: textItem) => void;
 }
 
 export const AddRecord = (props: Props) => {
@@ -26,8 +26,7 @@ export const AddRecord = (props: Props) => {
     };
 
     const audioProps = {
-        audioType: "audio/webm",
-        audioOptions: { sampleRate: 24000 },
+        audioType: "audio/wav",
         status,
         audioSrc: audioSrc,
         audioBlob: new Blob(),
@@ -44,6 +43,7 @@ export const AddRecord = (props: Props) => {
             const newItem: textItem = {
                 fileId: props.sentence.fileId,
                 id: props.sentence.id,
+                No: props.sentence.No,
                 index: props.sentence.index,
                 text: props.sentence.text,
                 src: src,

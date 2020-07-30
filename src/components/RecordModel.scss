@@ -1,6 +1,9 @@
-﻿/*.container{
-    .text-center {
-        text-align: center;
-        color: blue;
+﻿.container {
+    #tts-input-text {
+        display: none;
     }
-}*/
+
+    .tts-recordItem {
+        text-align: center;
+    }
+}
