@@ -1,0 +1,2 @@
+SpeechServicesPortal\src\SpeechServices.Portal\Client\src\component\tts\index.tsx
+SpeechServicesPortal\src\SpeechServices.Portal\Client\src\component\tts\data\dataRecordingComponents\TTSRecordingPage.tsx

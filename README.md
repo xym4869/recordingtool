@@ -31,3 +31,5 @@ update：不再使用blob存储录音内容，改用src存储后，需要下载�
 update：删除save和download两个按钮，录音item居中。修订之前无法input相同name的text的问题。添加scss，虽然当前并未使用。
 
 update2：修改input按钮内容，修改输入文件和输出文件格式，修复音频采样率过低问题，使用scss定义文本居中。
+
+update3：添加dataRecordingComponents，此处为SpeechServicesPortal项目备份。

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Fragment } from "react";
 import { AddRecord } from "./AddRecord";
 import { v1 as uuidv1 } from "uuid";
 import JSZip from "jszip";
@@ -42,6 +42,24 @@ export const RecordModel = () => {
     const [startAudio, setStartAudio] = useState(false);
     const [prevDisabled, setPrevDisabled] = useState(true);
     const [nextDisabled, setNextDisabled] = useState(false);
+
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState("");
+
+    const handleChange = (event: React.FormEvent) => {
+        const target = event.target as HTMLInputElement;
+        const value = target.value;
+        const name = target.name;
+        if (name === "name") {
+            setName(value);
+        } else if (name === "description") {
+            setDescription(value);
+        }
+    };
+
+    const checkValid = () => {
+        return !name;
+    };
 
     const readFile = (e: any) => {
         const reader = new FileReader();
@@ -203,6 +221,19 @@ export const RecordModel = () => {
         });
     }
 
+    const uploadData = () => {
+        const data = file.text;
+        let zip = new JSZip();
+        for (let i = 0; i < data.length; i++) {
+            const obj = data[i];
+            if (obj.hasAudio) zip.file(obj.No + ".wav", getBlob(obj.src));
+        }
+        zip.generateAsync({ type: "blob" }).then(function (content: Blob) {
+            const filesZip = new File([content], "Sound.zip", { type: "application/x-zip-compressed" });
+            console.log(filesZip);
+        })
+    }
+
     return (
     <div className="container">
           <h1 className="text-center">Recording Page</h1>
@@ -242,6 +273,16 @@ export const RecordModel = () => {
                   <button disabled={zipDisabled} onClick={downloadAllRecord}>
                     Export .zip
                 </button>
+                <p>The lower button has no real function. These are only used for testing.</p><br/>
+                <div>
+                    <Fragment>
+                        Name:<br />
+                        <input type="text" onChange={handleChange} required={true} /><br />
+                    Description:<br />
+                        <input className="tts-user-input-description" onChange={handleChange} /><br />
+                    </Fragment>
+                    <button disabled={checkValid() || zipDisabled} onClick={uploadData}>Upload</button>
+                    </div>
               </div>}
     </div>
   );
