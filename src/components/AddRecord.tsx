@@ -2,6 +2,8 @@
 import * as React from "react";
 import AudioAnalyser from "react-audio-analyser";
 import { textItem } from "./RecordModel";
+import { resampler } from "./audio-resampler";
+import { audioBufferToWav } from "./audiobuffer-to-wav";
 
 interface Props {
     sentence: textItem;
@@ -25,8 +27,22 @@ export const AddRecord = (props: Props) => {
         console.log("status", status);
     };
 
+    const handleAudioResample = (src: string) => {
+        const targetSampleRate = 16000;
+        resampler(src, targetSampleRate, function (event: any) {
+            //return audioBuffer
+            const audioBuffer = event.getAudioBuffer();
+            //Add Wav Header in AudioBuffer
+            const audioWavBuffer = audioBufferToWav(audioBuffer);
+
+            //Or return blob url
+            const audioURL = event.getFileURL();
+        });
+    };
+
     const audioProps = {
         audioType: "audio/wav",
+        //audioOptions: { sampleRate: 16000 },
         status,
         audioSrc: audioSrc,
         audioBlob: new Blob(),
@@ -51,6 +67,7 @@ export const AddRecord = (props: Props) => {
             }
             props.handleAddAudio(newItem);
             console.log("succ stop", e);
+            //handleAudioResample(src);
         },
         onRecordCallback: (e: Blob) => {
             console.log("recording", e);

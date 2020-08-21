@@ -1,7 +1,7 @@
 {
   "name": "my-test-package",
   "version": "1.0.0",
-  "description": "",
+  "description": "功能：实现两个录音按钮，录音文件列表展示，打包下载。\r 两个主文件夹\r - src：react+tsx；\r - srcts：（从 [download JSZip](http://github.com/Stuk/jszip/zipball/master) 下载包解压后放入该文件夹中，并该名为Stuk-jszip）\r   - index.html：+record.js（由record.ts转换而成）\r   - index2.html：+recorder.js",
   "main": "test.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -37,5 +37,13 @@
     "source-map-loader": "^1.0.0",
     "typescript": "^3.9.6",
     "webpack-cli": "^3.3.12"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xym4869/recordingtool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xym4869/recordingtool/issues"
+  },
+  "homepage": "https://github.com/xym4869/recordingtool#readme"
 }

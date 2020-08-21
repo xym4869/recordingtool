@@ -253,9 +253,12 @@ export const RecordModel = () => {
           {startAudio &&
               <div>
                 <div className="tts-recordItem">
-                    <h2>
-                        {item.index + 1 + "/" + file.text.length} <br /> {item.text}
-                    </h2>
+                    <div className="tts-recordItem-text">
+                        <div className="tts-recordItem-content">
+                        <h2>{item.index + 1 + "/" + file.text.length}</h2>
+                            <h2>{item.text}</h2>
+                            </div>
+                        </div>
                       <AddRecord sentence={item} handleAddAudio={handleAddAudio} />
                       <button disabled={prevDisabled} onClick={getPrevItem}>
                           Prev

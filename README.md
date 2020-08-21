@@ -33,3 +33,9 @@ update：删除save和download两个按钮，录音item居中。修订之前无�
 update2：修改input按钮内容，修改输入文件和输出文件格式，修复音频采样率过低问题，使用scss定义文本居中。
 
 update3：添加dataRecordingComponents，此处为SpeechServicesPortal项目备份。
+
+## Version 5
+
+修改至：src
+
+添加resample功能，添加给AudioBuffer加Wav头的代码。

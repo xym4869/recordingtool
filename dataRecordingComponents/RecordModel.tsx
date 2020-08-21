@@ -75,9 +75,9 @@ export const RecordModel = () => {
     const value = target.value;
     const name = target.name;
     if (name === "name") {
-        setName(value);
+      setName(value);
     } else if (name === "description") {
-        setDescription(value);
+      setDescription(value);
     }
   };
 
@@ -240,50 +240,50 @@ export const RecordModel = () => {
     });
   };
 
-    const uploadData = () => {
-      const data: ITTSDatasetDefinition = {
-        project: { id: project.id, self: project.self },
-        name: name,
-        displayName: name,
-        description: description || "",
-        properties: {},
-        locale: project.locale,
-        dataImportKind: TTSDataImportKind.CustomVoice,
-      };
-      data.properties.Gender = project.properties.Gender;
-      data.properties.IsMixLingual = "false";
-      if (data.locale === mixlingualLocal.name) {
-        data.locale = mixlingualLocal.code;
-        data.properties.IsMixLingual = "true";
-        }
+  const uploadData = () => {
+    const data: ITTSDatasetDefinition = {
+      project: { id: project.id, self: project.self },
+      name: name,
+      displayName: name,
+      description: description || "",
+      properties: {},
+      locale: project.locale,
+      dataImportKind: TTSDataImportKind.CustomVoice,
+    };
+    data.properties.Gender = project.properties.Gender;
+    data.properties.IsMixLingual = "false";
+    if (data.locale === mixlingualLocal.name) {
+      data.locale = mixlingualLocal.code;
+      data.properties.IsMixLingual = "true";
+    }
 
-      const textTemp = file.text;
-      let str: string = "";
-      textTemp.forEach((text: textItem) => {
-        str = str + text.No + "\t" + text.text + "\n";
-      });
-      const saveFile = new File([str], file.name, { type: "text/plain" });
+    const textTemp = file.text;
+    let str: string = "";
+    textTemp.forEach((text: textItem) => {
+      str = str + text.No + "\t" + text.text + "\n";
+    });
+    const saveFile = new File([str], file.name, { type: "text/plain" });
 
-      const fileTextData = file.text;
-      let zip = new JSZip();
-      for (let i = 0; i < fileTextData.length; i++) {
-        const obj = fileTextData[i];
-        if (obj.hasAudio) zip.file(obj.No + ".wav", getBlob(obj.src));
-      }
-      zip.generateAsync({ type: "blob" }).then(function(content: Blob) {
-          const filesZip = new File([content], name + ".zip", { type: "application/x-zip-compressed" });
-          store.dispatch(uploadTTSDataAction(api, project, VoiceDatasetSubtype.Normal, data, filesZip, saveFile));
-      });
-        setUpdateComplete(true);
+    const fileTextData = file.text;
+    let zip = new JSZip();
+    for (let i = 0; i < fileTextData.length; i++) {
+      const obj = fileTextData[i];
+      if (obj.hasAudio) zip.file(obj.No + ".wav", getBlob(obj.src));
+    }
+    zip.generateAsync({ type: "blob" }).then(function(content: Blob) {
+      const filesZip = new File([content], name + ".zip", { type: "application/x-zip-compressed" });
+      store.dispatch(uploadTTSDataAction(api, project, VoiceDatasetSubtype.Normal, data, filesZip, saveFile));
+    });
+    setUpdateComplete(true);
   };
 
-    if (updateComplete) {
+  if (updateComplete) {
     return <Redirect to={urljoin("/portal", subscription.id, ProjectType.CustomVoice.toLowerCase(), project.id)} />;
   }
 
   return (
     <div className="container">
-      <h1 className="text-center">Recording Page</h1>
+      <h1 className="text-center">Recording Page (Beta)</h1>
       <input
         type="file"
         id="tts-input-text"
@@ -302,9 +302,12 @@ export const RecordModel = () => {
       {startAudio && (
         <div>
           <div className="tts-recordItem">
-            <h2>
-              {item.index + 1 + "/" + file.text.length} <br /> {item.text}
-            </h2>
+            <div className="tts-recordItem-text">
+              <div className="tts-recordItem-content">
+                <h2>{item.index + 1 + "/" + file.text.length}</h2>
+                <h2>{item.text}</h2>
+              </div>
+            </div>
             <AddRecord sentence={item} handleAddAudio={handleAddAudio} />
             <button disabled={prevDisabled} onClick={getPrevItem}>
               Prev
@@ -312,13 +315,9 @@ export const RecordModel = () => {
             <button disabled={nextDisabled} onClick={getNextItem}>
               Next
             </button>
-            <button onClick={deleteItem}>
-                Delete
-            </button>
+            <button onClick={deleteItem}>Delete</button>
           </div>
-        <button onClick={downloadTextFile}>
-            Download script
-        </button>
+          <button onClick={downloadTextFile}>Download script</button>
           <button disabled={zipDisabled} onClick={downloadAllRecord}>
             Download audio zip
           </button>
@@ -335,13 +334,19 @@ export const RecordModel = () => {
               name="description"
               className="margin-top_15"
               label="Description"
-                placeholder="Describe your dataset"
-                defaultValue={null||""}
+              placeholder="Describe your dataset"
+              defaultValue={null || ""}
               onChange={handleChange}
             />
-            </Fragment>
-            <p>Finish the recording above, fill in dataset name and description, and click 'Upload' button to upload data to server</p><br/>
-            <button disabled={checkValid() || zipDisabled} onClick={uploadData}>Upload</button>
+          </Fragment>
+          <br />
+          <p>
+            Finish the recording above, fill in dataset name and description, and click 'Upload' button to upload data
+            to server
+          </p>
+          <button disabled={checkValid() || zipDisabled} onClick={uploadData}>
+            Upload
+          </button>
         </div>
       )}
     </div>
